@@ -1,7 +1,7 @@
 # API C#
 Ce projet est une API REST pour gérer les connaissances, projets et catégories d'une application interne à mon entreprise.
 
-Voici le lien du github du front de cette API : https://github.com/hugodorlac/API-CSharp
+Voici le lien du github du front de cette API : https://github.com/hugodorlac/Front-For-API-CSharp/
 
 # Prérequis
 .NET 5 SDK
