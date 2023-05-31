@@ -1,5 +1,7 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace XefiAcademyAPI.Model
 {
@@ -32,14 +34,28 @@ namespace XefiAcademyAPI.Model
 
                 if (oDt.Rows.Count > 0)
                 {
-                    if (oDt.Rows[0]["MotDePasse"].ToString() == MotDePasse.ToString()) {
+                    var storedPassword = oDt.Rows[0]["MotDePasse"].ToString();
+                    var hashedPassword = ComputeHash(MotDePasse);
+
+                    if (storedPassword == hashedPassword)
+                    {
                         oAuthEntity.Email = Email;
-                        oAuthEntity.MotDePasse = oDt.Rows[0]["MotDePasse"].ToString();
+                        oAuthEntity.MotDePasse = storedPassword;
                     }
                 }
             }
 
             return oAuthEntity;
+        }
+
+        private string ComputeHash(string input)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(input);
+                byte[] hashBytes = sha256.ComputeHash(bytes);
+                return BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+            }
         }
     }
 }

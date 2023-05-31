@@ -51,9 +51,9 @@ app.MapPut("/Login", (IConfiguration _c, AuthEntitity fc) =>
     var auth = new Auth(_c);
     var utilisateur = auth.GetUtilisateur(fc.Email, fc.MotDePasse);
 
-    if (utilisateur != null)
+    if (utilisateur.MotDePasse != null)
     {
-        return Results.Created($"/Login/{utilisateur.IdUtilisateur}", utilisateur);
+        return Results.Created($"/Login/", utilisateur);
     }
     else
     {
