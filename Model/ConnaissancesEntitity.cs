@@ -1,6 +1,6 @@
 ﻿namespace XefiAcademyAPI.Model
 {
-    public class ConnaissancesForeCastEntitity
+    public class ConnaissancesEntitity
     {
         public int IdConnaissance { get; set; }
 
@@ -12,19 +12,21 @@
         public string DescriptionLongue { get; set; }
 
         public string? Libelle { get; set; }
+        public string? LibelleCategorie { get; set; }
 
 
-        public ConnaissancesForeCastEntitity()
+        public ConnaissancesEntitity()
         {
 
         }
-        public ConnaissancesForeCastEntitity(int Id, int IdCategorie, string Libelle, string DescriptionCourte, string DescriptionLongue)
+        public ConnaissancesEntitity(int Id, int IdCategorie, string Libelle, string DescriptionCourte, string DescriptionLongue, string LibelleCategorie)
         {
             this.IdConnaissance = Id;
             this.IdCategorie = IdCategorie;
             this.Libelle = Libelle;
             this.DescriptionCourte = DescriptionCourte;
             this.DescriptionLongue = DescriptionLongue;
+            this.LibelleCategorie = LibelleCategorie;
 
 
         }

@@ -23,11 +23,12 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); var app = builder.Build(); app.UseCors(MyAllowSpecificOrigins); 
+builder.Services.AddSwaggerGen();
+var app = builder.Build();
 app.UseCors(builder => builder
 .AllowAnyOrigin()
-.AllowAnyMethod()
 .AllowAnyHeader()
+.AllowAnyMethod()
 ); 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -37,27 +38,53 @@ if (app.Environment.IsDevelopment())
 }
 app.MapGet("/", () =>
 {
-    return "HELLOOOOOOOOOOOOOOOOw";
+    return "Route non définit";
 })
 .WithName("HelloWord")
 .WithOpenApi();
 
+// -------------------------- AUTH -------------------------------------------------------------------------------------------
+
+// Get Auth
+app.MapPut("/Login", (IConfiguration _c, AuthEntitity fc) =>
+{
+    var auth = new Auth(_c);
+    var utilisateur = auth.GetUtilisateur(fc.Email, fc.MotDePasse);
+
+    if (utilisateur != null)
+    {
+        return Results.Created($"/Login/{utilisateur.IdUtilisateur}", utilisateur);
+    }
+    else
+    {
+        return Results.Problem(new ProblemDetails { Detail = "L'authentification a échoué", Status = 401 });
+    }
+})
+.WithTags("Auth");
+
 // -------------------------- CONNAISSANCES -------------------------------------------------------------------------------------------
 
 // CREATE Connaissance
-app.MapPut("/CreateConnaissance", (ConnaissancesForeCastEntitity fc) =>
+app.MapPut("/CreateConnaissance", (IConfiguration _c,ConnaissancesEntitity fc) =>
 {
 
-    var ok = new ConnaissancesForeCastRepo(builder.Configuration).CreateConnaissance(fc);
-    fc.IdConnaissance = ok;
-    return (ok != -1) ? Results.Created($"/{ok}", fc) : Results.Problem(new ProblemDetails { Detail = "L'insert n'a pas marché", Status = 500 });
+    var ok = new Connaissances(_c).CreateConnaissance(fc);
+    fc.IdConnaissance = (int)ok;
+    return (ok != -1) ? Results.Created($"ReadConnaissance/{ok}", fc) : Results.Problem(new ProblemDetails { Detail = "L'insert n'a pas marché", Status = 500 });
 
-}).WithTags("Connaissances"); 
+}).WithTags("Connaissances");
+
+// NUMBER Connaissance
+app.MapGet("/ReadNumberConnaissance", () =>
+{
+    return new Connaissances(builder.Configuration).ReadNumberConnaissances();
+
+}).WithTags("Connaissances");
 
 // READ Connaissance
 app.MapGet("ReadConnaissance/{id:int}", (int id) =>
 {  
-    var fc = new ConnaissancesForeCastRepo(builder.Configuration).GetConnaissance(id);
+    var fc = new Connaissances(builder.Configuration).GetConnaissance(id);
     return fc.IdConnaissance == 0 ? Results.NotFound() : Results.Ok(fc) ;
 
 }).WithTags("Connaissances");
@@ -65,15 +92,15 @@ app.MapGet("ReadConnaissance/{id:int}", (int id) =>
 // READ ALL Connaissance
 app.MapGet("ReadAllConnaissance/", () =>
 {
-    return new ConnaissancesForeCastRepo(builder.Configuration).GetAllConnaissance();
+    return new Connaissances(builder.Configuration).GetAllConnaissance();
 
 }).WithTags("Connaissances");
 
 
 // UPDATE Connaissance
-app.MapPost("/UpdateConnaissance", (ConnaissancesForeCastEntitity fc) => {
+app.MapPost("/UpdateConnaissance", (ConnaissancesEntitity fc) => {
    
-   var ok =  new ConnaissancesForeCastRepo(builder.Configuration).UpdateConnaissances(fc);
+   var ok =  new Connaissances(builder.Configuration).UpdateConnaissances(fc);
    return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "L'update n'a pas marché", Status = 500 });
    
 }).WithTags("Connaissances");
@@ -82,7 +109,7 @@ app.MapPost("/UpdateConnaissance", (ConnaissancesForeCastEntitity fc) => {
 app.MapDelete("/DeleteConnaissance/{id:int}", (int id) =>
 {
 
-var ok = new ConnaissancesForeCastRepo(builder.Configuration).DeleteConnaissance(id);
+var ok = new Connaissances(builder.Configuration).DeleteConnaissance(id);
 return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "Le delete  n'a pas marché", Status = 500 });
 
 
@@ -91,10 +118,10 @@ return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = 
 // -------------------------- PROJETS -----------------------------------------------------------------------------------------------------
 
 //Create Projet
-app.MapPut("/CreateProjet", (ProjetsForeCastEntitity fc) =>
+app.MapPut("/CreateProjet", (ProjetsEntitity fc) =>
 {
 
-    var ok = new ProjetsForeCastRepo(builder.Configuration).CreateProjet(fc);
+    var ok = new Projets(builder.Configuration).CreateProjet(fc);
     fc.IdProjet = ok;
     return (ok != -1) ? Results.Created($"/{ok}", fc) : Results.Problem(new ProblemDetails { Detail = "L'insert n'a pas marché", Status = 500 });
 
@@ -104,7 +131,7 @@ app.MapPut("/CreateProjet", (ProjetsForeCastEntitity fc) =>
 // READ ALL Projets
 app.MapGet("ReadAllProjet/", () =>
 {
-    return new ProjetsForeCastRepo(builder.Configuration).GetAllProjets();
+    return new Projets(builder.Configuration).GetAllProjets();
 
 
 }).WithTags("Projets");
@@ -112,15 +139,15 @@ app.MapGet("ReadAllProjet/", () =>
 // READ Projet
 app.MapGet("/ReadProjet/{id:int}", (int id) => {
 
-    var fc = new ProjetsForeCastRepo(builder.Configuration).GetProjet(id);
+    var fc = new Projets(builder.Configuration).GetProjet(id);
     return fc.IdProjet == 0 ? Results.NotFound() : Results.Ok(fc);
 
 }).WithTags("Projets");
 
 // UPDARE Projet
-app.MapPost("/UpdateProjet", (ProjetsForeCastEntitity fc) => {
+app.MapPost("/UpdateProjet", (ProjetsEntitity fc) => {
 
-    var ok = new ProjetsForeCastRepo(builder.Configuration).UpdateProjet(fc);
+    var ok = new Projets(builder.Configuration).UpdateProjet(fc);
     return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "L'update n'a pas marché", Status = 500 });
 
 }).WithTags("Projets");
@@ -129,7 +156,7 @@ app.MapPost("/UpdateProjet", (ProjetsForeCastEntitity fc) => {
 app.MapDelete("/DeleteProjet/{id:int}", (int id) =>
 {
 
-    var ok = new ProjetsForeCastRepo(builder.Configuration).DeleteProjet(id);
+    var ok = new Projets(builder.Configuration).DeleteProjet(id);
     return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "Le delete  n'a pas marché", Status = 500 });
 
 
@@ -138,10 +165,10 @@ app.MapDelete("/DeleteProjet/{id:int}", (int id) =>
 // ------------------------------------------------------ CATEGORIES --------------------------------------------------------------------------------------
 
 //Create Categorie
-app.MapPut("/CreateCategorie", (CategoriesForeCastEntitity fc) =>
+app.MapPut("/CreateCategorie", (CategoriesEntitity fc) =>
 {
 
-    var ok = new CategoriesForeCastRepo(builder.Configuration).CreateCategorie(fc);
+    var ok = new Categories(builder.Configuration).CreateCategorie(fc);
     fc.IdCategorie = ok;
     return (ok != -1) ? Results.Created($"/{ok}", fc) : Results.Problem(new ProblemDetails { Detail = "L'insert n'a pas marché", Status = 500 });
 
@@ -150,7 +177,7 @@ app.MapPut("/CreateCategorie", (CategoriesForeCastEntitity fc) =>
 //READ Categorie
 app.MapGet("/ReadCategorie/{id:int}", (int id) => {
 
-    var fc = new CategoriesForeCastRepo(builder.Configuration).GetCategorie(id);
+    var fc = new Categories(builder.Configuration).GetCategorie(id);
     return fc.IdCategorie == 0 ? Results.NotFound() : Results.Ok(fc);
 
 }).WithTags("Categories");
@@ -158,14 +185,21 @@ app.MapGet("/ReadCategorie/{id:int}", (int id) => {
 //READ ALL Categories
 app.MapGet("/ReadAllCategories", () => {
 
-    return new CategoriesForeCastRepo(builder.Configuration).GetAllCategories();
+    return new Categories(builder.Configuration).GetAllCategories();
+
+}).WithTags("Categories");
+
+//READ Number Catégories
+app.MapGet("/ReadNumberCategorie", () => {
+
+    return new Categories(builder.Configuration).ReadNumberCategories();
 
 }).WithTags("Categories");
 
 // UPDATE Categorie
-app.MapPost("/UpdateCategorie", (CategoriesForeCastEntitity fc) => {
+app.MapPost("/UpdateCategorie", (CategoriesEntitity fc) => {
 
-    var ok = new CategoriesForeCastRepo(builder.Configuration).UpdateProjet(fc);
+    var ok = new Categories(builder.Configuration).UpdateProjet(fc);
     return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "L'update n'a pas marché", Status = 500 });
 
 }).WithTags("Categories");
@@ -174,7 +208,7 @@ app.MapPost("/UpdateCategorie", (CategoriesForeCastEntitity fc) => {
 app.MapDelete("/DeleteCategorie/{id:int}", (int id) =>
 {
 
-    var ok = new CategoriesForeCastRepo(builder.Configuration).DeleteCategorie(id);
+    var ok = new Categories(builder.Configuration).DeleteCategorie(id);
     return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "Le delete  n'a pas marché", Status = 500 });
 
 
@@ -184,10 +218,10 @@ app.MapDelete("/DeleteCategorie/{id:int}", (int id) =>
 
 
 //Create Type ressource
-app.MapPut("/CreateTypeRessource", (TypesRessourcesForeCastEntitity fc) =>
+app.MapPut("/CreateTypeRessource", (TypesRessourcesEntitity fc) =>
 {
 
-    var ok = new TypesRessourcesForeCastRepo(builder.Configuration).CreateTypeRessource(fc);
+    var ok = new TypesRessources(builder.Configuration).CreateTypeRessource(fc);
     fc.IdTypeRessource = ok;
     return (ok != -1) ? Results.Created($"/{ok}", fc) : Results.Problem(new ProblemDetails { Detail = "L'insert n'a pas marché", Status = 500 });
 
@@ -196,7 +230,7 @@ app.MapPut("/CreateTypeRessource", (TypesRessourcesForeCastEntitity fc) =>
 // READ Type Ressource
 app.MapGet("ReadTypeRessource/{id:int}", (int id) =>
 {
-    var fc = new TypesRessourcesForeCastRepo(builder.Configuration).GetTypeRessource(id);
+    var fc = new TypesRessources(builder.Configuration).GetTypeRessource(id);
     return fc.IdTypeRessource == 0 ? Results.NotFound() : Results.Ok(fc);
 
 }).WithTags("Types de ressource"); 
@@ -204,14 +238,14 @@ app.MapGet("ReadTypeRessource/{id:int}", (int id) =>
 //READ ALL Types Ressource
 app.MapGet("/ReadAllTypeRessource", () => {
 
-    return new TypesRessourcesForeCastRepo(builder.Configuration).GetAllTypeRessource();
+    return new TypesRessources(builder.Configuration).GetAllTypeRessource();
 
 }).WithTags("Types de ressource");
 
 // UPDARE Type Ressource
-app.MapPost("/UpdateTypeRessource", (TypesRessourcesForeCastEntitity fc) => {
+app.MapPost("/UpdateTypeRessource", (TypesRessourcesEntitity fc) => {
 
-    var ok = new TypesRessourcesForeCastRepo(builder.Configuration).UpdateTypeRessource(fc);
+    var ok = new TypesRessources(builder.Configuration).UpdateTypeRessource(fc);
     return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "L'update n'a pas marché", Status = 500 });
 
 }).WithTags("Types de ressource");
@@ -220,7 +254,7 @@ app.MapPost("/UpdateTypeRessource", (TypesRessourcesForeCastEntitity fc) => {
 app.MapDelete("/DeleteTypeRessource/{id:int}", (int id) =>
 {
 
-    var ok = new CategoriesForeCastRepo(builder.Configuration).DeleteCategorie(id);
+    var ok = new Categories(builder.Configuration).DeleteCategorie(id);
     return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "Le delete  n'a pas marché", Status = 500 });
 
 
@@ -230,10 +264,10 @@ app.MapDelete("/DeleteTypeRessource/{id:int}", (int id) =>
 //---------------------------------------------------- Ressources -----------------------------------------------------------------
 
 //Create Ressource
-app.MapPut("/CreateRessource", (RessourcesForeCastEntitity fc) =>
+app.MapPut("/CreateRessource", (RessourcesEntitity fc) =>
 {
 
-    var ok = new RessourcesForeCastRepo(builder.Configuration).CreateRessource(fc);
+    var ok = new Ressources(builder.Configuration).CreateRessource(fc);
     fc.IdTypeRessource = ok;
     return (ok != -1) ? Results.Created($"/{ok}", fc) : Results.Problem(new ProblemDetails { Detail = "L'insert n'a pas marché", Status = 500 });
 
@@ -242,7 +276,7 @@ app.MapPut("/CreateRessource", (RessourcesForeCastEntitity fc) =>
 // READ Ressource
 app.MapGet("ReadRessources/{id:int}", (int id) =>
 {
-    var fc = new RessourcesForeCastRepo(builder.Configuration).GetRessource(id);
+    var fc = new Ressources(builder.Configuration).GetRessource(id);
     return fc.IdRessource == 0 ? Results.NotFound() : Results.Ok(fc);
 
 }).WithTags("Ressources");
@@ -250,14 +284,14 @@ app.MapGet("ReadRessources/{id:int}", (int id) =>
 //READ ALL Ressources
 app.MapGet("/ReadAllRessources", () => {
 
-    return new RessourcesForeCastRepo(builder.Configuration).GetAllRessources();
+    return new Ressources(builder.Configuration).GetAllRessources();
 
 }).WithTags("Ressources");
 
 // UPDATE Ressource
-app.MapPost("/UpdateRessource", (RessourcesForeCastEntitity fc) => {
+app.MapPost("/UpdateRessource", (RessourcesEntitity fc) => {
 
-    var ok = new RessourcesForeCastRepo(builder.Configuration).UpdateRessource(fc);
+    var ok = new Ressources(builder.Configuration).UpdateRessource(fc);
     return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "L'update n'a pas marché", Status = 500 });
 
 }).WithTags("Ressources");
@@ -266,9 +300,16 @@ app.MapPost("/UpdateRessource", (RessourcesForeCastEntitity fc) => {
 app.MapDelete("/DeleteRessource/{id:int}", (int id) =>
 {
 
-    var ok = new RessourcesForeCastRepo(builder.Configuration).DeleteRessource(id);
+    var ok = new Ressources(builder.Configuration).DeleteRessource(id);
     return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "Le delete  n'a pas marché", Status = 500 });
 
+
+}).WithTags("Ressources");
+
+// NUMBER Connaissance
+app.MapGet("/ReadNumberRessources", () =>
+{
+    return new Ressources(builder.Configuration).ReadNumberRessources();
 
 }).WithTags("Ressources");
 

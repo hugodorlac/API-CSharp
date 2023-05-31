@@ -1,17 +1,17 @@
 ﻿namespace XefiAcademyAPI.Model
 {
-    public class TypesRessourcesForeCastEntitity
+    public class TypesRessourcesEntitity
     {
         public int IdTypeRessource { get; set; }
 
         public string LienImage { get; set; }
 
-        public TypesRessourcesForeCastEntitity()
+        public TypesRessourcesEntitity()
         {
 
         }
 
-        public TypesRessourcesForeCastEntitity(int IdTypeRessource, string LienImage)
+        public TypesRessourcesEntitity(int IdTypeRessource, string LienImage)
         {
             this.IdTypeRessource = IdTypeRessource;
             this.LienImage = LienImage;

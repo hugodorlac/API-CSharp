@@ -3,20 +3,20 @@ using System.Data.SqlClient;
 
 namespace XefiAcademyAPI.Model
 {
-    public class ConnaissancesForeCastRepo
+    public class Connaissances
     {
         private readonly IConfiguration? _configuration;
-        public ConnaissancesForeCastRepo(IConfiguration? configuration)
+        public Connaissances(IConfiguration? configuration)
         {
             _configuration = configuration;
 
         }
 
-        public ConnaissancesForeCastEntitity GetConnaissance(int id)
+        public ConnaissancesEntitity GetConnaissance(int id)
         {
 
             var oSqlParam = new SqlParameter("@Id", id);
-            var oConnaissances = new ConnaissancesForeCastEntitity();
+            var oConnaissances = new ConnaissancesEntitity();
             var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
             var oSqlCommand = new SqlCommand("select * from Connaissances where IdConnaissance = @Id");
             var oSqlAdapter = new SqlDataAdapter(oSqlCommand);
@@ -37,13 +37,31 @@ namespace XefiAcademyAPI.Model
                 oConnaissances.Libelle = (string)oDt.Rows[0][2];
                 oConnaissances.DescriptionCourte = (string)oDt.Rows[0][3];
                 oConnaissances.DescriptionLongue = (string)oDt.Rows[0][4];
+
+                if (oDt.Rows[0][1] != DBNull.Value)
+                {
+                    using (SqlConnection oSqlConnection1 = new SqlConnection(_configuration?.GetConnectionString("SQL")))
+                    {
+                        oSqlConnection1.Open();
+                        using (SqlCommand oSqlCommand1 = new SqlCommand("SELECT * FROM Categories WHERE IdCategorie = @Id", oSqlConnection1))
+                        {
+                            oSqlCommand1.Parameters.AddWithValue("@Id", oDt.Rows[0][1]);
+
+                            using (SqlDataReader reader = oSqlCommand1.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    oConnaissances.LibelleCategorie = (string)reader["Libelle"];
+                                }
+                            }
+                        }
+                    }
+                }
             }
-
             return oConnaissances;
-
         }
 
-        public bool UpdateConnaissances(ConnaissancesForeCastEntitity fc)
+        public bool UpdateConnaissances(ConnaissancesEntitity fc)
         {
             try
             {
@@ -55,8 +73,7 @@ namespace XefiAcademyAPI.Model
                 var oSqlParam3 = new SqlParameter("@DescriptionCourte", fc.DescriptionCourte);
                 var oSqlParam4 = new SqlParameter("@DescriptionLongue", fc.DescriptionLongue);
 
-                var oSqlCommand = new SqlCommand("Update Connaissances Set Libelle=@Libelle,DescriptionCourte=@DescriptionCourte,DescriptionLongue=@DescriptionLongue   Where IdConnaissance = @Id ");
-
+                var oSqlCommand = new SqlCommand("Update Connaissances Set IdCategorie=@IdCategorie,Libelle=@Libelle,DescriptionCourte=@DescriptionCourte,DescriptionLongue=@DescriptionLongue   Where IdConnaissance = @Id ");
                 oSqlCommand.Parameters.Add(oSqlParam);
                 oSqlCommand.Parameters.Add(oSqlParam1);
                 oSqlCommand.Parameters.Add(oSqlParam2);
@@ -70,6 +87,9 @@ namespace XefiAcademyAPI.Model
                 oSqlConnection.Close();
 
                 return true;
+
+
+                
             }
             catch (Exception)
             {
@@ -107,19 +127,21 @@ namespace XefiAcademyAPI.Model
             }
         }
 
-        public int CreateConnaissance(ConnaissancesForeCastEntitity fc)
+        public decimal CreateConnaissance(ConnaissancesEntitity fc)
         {
             try
             {
 
                 var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
 
+                var oSqlParam1 = new SqlParameter("@IdCategorie", fc.IdCategorie);
                 var oSqlParam2 = new SqlParameter("@Libelle", fc.Libelle);
                 var oSqlParam3 = new SqlParameter("@DescriptionCourte", fc.DescriptionCourte);
                 var oSqlParam4 = new SqlParameter("@DescriptionLongue", fc.DescriptionLongue);
 
-                var oSqlCommand = new SqlCommand("Insert Into  Connaissances(Libelle,DescriptionCourte,DescriptionLongue) Values (@Libelle,@DescriptionCourte, @DescriptionLongue);");
+                var oSqlCommand = new SqlCommand("Insert Into  Connaissances(IdCategorie,Libelle,DescriptionCourte,DescriptionLongue) Values (@IdCategorie,@Libelle,@DescriptionCourte, @DescriptionLongue); SELECT @@identity;");
 
+                oSqlCommand.Parameters.Add(oSqlParam1);
                 oSqlCommand.Parameters.Add(oSqlParam2);
                 oSqlCommand.Parameters.Add(oSqlParam3);
                 oSqlCommand.Parameters.Add(oSqlParam4);
@@ -127,8 +149,7 @@ namespace XefiAcademyAPI.Model
 
                 oSqlCommand.Connection = oSqlConnection;
                 oSqlConnection.Open();
-                var Idretour = fc.IdConnaissance;
-                oSqlCommand!.ExecuteNonQuery();
+                var Idretour = (decimal)oSqlCommand.ExecuteScalar();
                 oSqlConnection.Close();
 
                 return Idretour;
@@ -140,9 +161,9 @@ namespace XefiAcademyAPI.Model
             }
         }
 
-        public List<ConnaissancesForeCastEntitity> GetAllConnaissance()
+        public List<ConnaissancesEntitity> GetAllConnaissance()
         {
-            var oList = new List<ConnaissancesForeCastEntitity>();
+            var oList = new List<ConnaissancesEntitity>();
             var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
             var oSqlCommand = new SqlCommand("Select * From Connaissances Order By IdConnaissance");
 
@@ -152,15 +173,42 @@ namespace XefiAcademyAPI.Model
             var oSqlDataReader = oSqlCommand.ExecuteReader();
             while (oSqlDataReader.Read())
             {
-                oList.Add(new ConnaissancesForeCastEntitity
+                // Create a new ConnaissancesForeCastEntitity object with the properties from the SqlDataReader
+                ConnaissancesEntitity entity = new ConnaissancesEntitity
                 {
                     IdConnaissance = (int)oSqlDataReader["IdConnaissance"],
-                    IdCategorie = oSqlDataReader["IdCategorie"] != DBNull.Value ? (int)oSqlDataReader["IdCategorie"] : 0, //Si c'est NULL = 0
+                    IdCategorie = oSqlDataReader["IdCategorie"] != DBNull.Value ? (int)oSqlDataReader["IdCategorie"] : 0,
                     Libelle = (string)oSqlDataReader["Libelle"],
                     DescriptionCourte = (string)oSqlDataReader["DescriptionCourte"],
                     DescriptionLongue = (string)oSqlDataReader["DescriptionLongue"]
-                });
-            };
+                };
+
+                // Check if the IdCategorie is not null before executing the SQL query
+                if (oSqlDataReader["IdCategorie"] != DBNull.Value)
+                {
+                    using (SqlConnection oSqlConnection1 = new SqlConnection(_configuration?.GetConnectionString("SQL")))
+                    {
+                        oSqlConnection1.Open();
+                        using (SqlCommand oSqlCommand1 = new SqlCommand("SELECT Libelle FROM Categories WHERE IdCategorie = @Id", oSqlConnection1))
+                        {
+                            // Use the IdCategorie property of the entity, not the IdConnaissance property
+                            oSqlCommand1.Parameters.AddWithValue("@Id", entity.IdCategorie);
+
+                            using (SqlDataReader reader = oSqlCommand1.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    // Set the LibelleCategorie property of the entity, not the local variable
+                                    entity.LibelleCategorie = (string)reader["Libelle"];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Add the entity to the list
+                oList.Add(entity);
+            }
             oSqlDataReader.Close();
             oSqlConnection.Close();
 
@@ -169,75 +217,20 @@ namespace XefiAcademyAPI.Model
 
         }
 
-        //public List<ConnaissancesForeCastEntitity> GetCity(string Libelle)
-        //{
-        //    var oList = new List<ConnaissancesForeCastEntitity>();
-        //    var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
-        //    var oSqlCommand = new SqlCommand($"SELECT * FROM weather w INNER JOIN city ON w.idVille = city.idVille where Libelle = '{Libelle}' ;");
-
-        //    oSqlCommand.Connection = oSqlConnection;
-        //    oSqlConnection.Open();
-
-        //    var oSqlDataReader = oSqlCommand.ExecuteReader();
-        //    while (oSqlDataReader.Read())
-        //    {
-        //        oList.Add(new ConnaissancesForeCastEntitity { Id = (int)oSqlDataReader["ID"], Date = DateOnly.FromDateTime((DateTime)oSqlDataReader["DATE"]), TemperatureC = (int)oSqlDataReader["TEMPERATUREC"], Summary = (string)oSqlDataReader["SUMMARY"], idVille = (int)oSqlDataReader["idVille"], Libelle = (string)oSqlDataReader["Libelle"], Pays = (string)oSqlDataReader["Pays"] });
-
-        //    };
-        //    oSqlDataReader.Close();
-        //    oSqlConnection.Close();
-
-
-        //    return oList;
-
-        //}
-
-        //public List<ConnaissancesForeCastEntitity> GetAllCity()
-        //{
-        //    var oList = new List<ConnaissancesForeCastEntitity>();
-        //    var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
-        //    var oSqlCommand = new SqlCommand("SELECT * FROM weather w INNER JOIN city ON w.idVille = city.idVille order by w.idVille;");
-
-        //    oSqlCommand.Connection = oSqlConnection;
-        //    oSqlConnection.Open();
-
-        //    var oSqlDataReader = oSqlCommand.ExecuteReader();
-        //    while (oSqlDataReader.Read())
-        //    {
-        //        oList.Add(new ConnaissancesForeCastEntitity { Id = (int)oSqlDataReader["ID"], Date = DateOnly.FromDateTime((DateTime)oSqlDataReader["DATE"]), TemperatureC = (int)oSqlDataReader["TEMPERATUREC"], Summary = (string)oSqlDataReader["SUMMARY"], idVille = (int)oSqlDataReader["idVille"], Libelle = (string)oSqlDataReader["Libelle"], Pays = (string)oSqlDataReader["Pays"] });
-
-        //    };
-        //    oSqlDataReader.Close();
-        //    oSqlConnection.Close();
-
-
-        //    return oList;
-
-        //}
-
-        public int InsertCity(ConnaissancesForeCastEntitity fc)
+        public int ReadNumberConnaissances()
         {
             try
             {
 
                 var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
-
-                var oSqlParam = new SqlParameter("@Id", fc.IdConnaissance);
-                var oSqlParam2 = new SqlParameter("@Libelle", fc.Libelle);
-
-                var oSqlCommand = new SqlCommand("Insert Into  city(idVille,Libelle,Pays) Values (@Id, @Libelle,@Pays);");
-
-                oSqlCommand.Parameters.Add(oSqlParam);
-                oSqlCommand.Parameters.Add(oSqlParam2);
-
-
+                var oSqlCommand = new SqlCommand("select count(*) from Connaissances");
                 oSqlCommand.Connection = oSqlConnection;
+
                 oSqlConnection.Open();
-                var Idretour = fc.IdConnaissance;
-                oSqlCommand!.ExecuteNonQuery();
+                int count = (int)oSqlCommand.ExecuteScalar();
                 oSqlConnection.Close();
 
-                return Idretour;
+                return count;
             }
             catch (Exception)
             {
@@ -245,5 +238,6 @@ namespace XefiAcademyAPI.Model
                 return -1;
             }
         }
+
     }
 }

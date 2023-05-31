@@ -3,20 +3,20 @@ using System.Data.SqlClient;
 
 namespace XefiAcademyAPI.Model
 {
-    public class TypesRessourcesForeCastRepo
+    public class TypesRessources
     {
         private readonly IConfiguration? _configuration;
-        public TypesRessourcesForeCastRepo(IConfiguration? configuration)
+        public TypesRessources(IConfiguration? configuration)
         {
             _configuration = configuration;
 
         }
 
-        public TypesRessourcesForeCastEntitity GetTypeRessource(int id)
+        public TypesRessourcesEntitity GetTypeRessource(int id)
         {
 
             var oSqlParam = new SqlParameter("@Id", id);
-            var oTypeRessource = new TypesRessourcesForeCastEntitity();
+            var oTypeRessource = new TypesRessourcesEntitity();
             var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
             var oSqlCommand = new SqlCommand("select * from TypeRessources where IdTypeRessource = @Id");
             var oSqlAdapter = new SqlDataAdapter(oSqlCommand);
@@ -45,9 +45,9 @@ namespace XefiAcademyAPI.Model
 
         }
 
-        public List<TypesRessourcesForeCastEntitity> GetAllTypeRessource()
+        public List<TypesRessourcesEntitity> GetAllTypeRessource()
         {
-            var oList = new List<TypesRessourcesForeCastEntitity>();
+            var oList = new List<TypesRessourcesEntitity>();
             var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
             var oSqlCommand = new SqlCommand("Select * From TypeRessources Order By IdTypeRessource");
 
@@ -57,7 +57,7 @@ namespace XefiAcademyAPI.Model
             var oSqlDataReader = oSqlCommand.ExecuteReader();
             while (oSqlDataReader.Read())
             {
-                oList.Add(new TypesRessourcesForeCastEntitity
+                oList.Add(new TypesRessourcesEntitity
                 {
                     IdTypeRessource = (int)oSqlDataReader["IdTypeRessource"],
                     LienImage = (string)oSqlDataReader["LienImage"]
@@ -72,7 +72,7 @@ namespace XefiAcademyAPI.Model
 
         }
 
-        public bool UpdateTypeRessource(TypesRessourcesForeCastEntitity fc)
+        public bool UpdateTypeRessource(TypesRessourcesEntitity fc)
         {
             try
             {
@@ -102,7 +102,7 @@ namespace XefiAcademyAPI.Model
             }
         }
 
-        public int CreateTypeRessource(TypesRessourcesForeCastEntitity fc)
+        public int CreateTypeRessource(TypesRessourcesEntitity fc)
         {
             try
             {

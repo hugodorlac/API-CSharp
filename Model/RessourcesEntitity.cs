@@ -1,6 +1,6 @@
 ﻿namespace XefiAcademyAPI.Model
 {
-    public class RessourcesForeCastEntitity
+    public class RessourcesEntitity
     {
         public int IdRessource { get; set; }
 
@@ -11,12 +11,12 @@
         public string Auteur { get; set; }
         public string Contenu { get; set; }
 
-        public RessourcesForeCastEntitity()
+        public RessourcesEntitity()
         {
 
         }
 
-        public RessourcesForeCastEntitity(int IdRessource, int IdConnaissance, int IdTypeRessource,string Auteur, string Contenu)
+        public RessourcesEntitity(int IdRessource, int IdConnaissance, int IdTypeRessource,string Auteur, string Contenu)
         {
             this.IdRessource = IdRessource;
             this.IdConnaissance = IdConnaissance;

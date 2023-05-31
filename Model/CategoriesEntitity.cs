@@ -2,18 +2,18 @@
 
 namespace XefiAcademyAPI.Model
 {
-    public class CategoriesForeCastEntitity
+    public class CategoriesEntitity
     {
         public int IdCategorie { get; set; }
 
         public string Libelle { get; set; }
 
-        public CategoriesForeCastEntitity()
+        public CategoriesEntitity()
         {
 
         }
 
-        public CategoriesForeCastEntitity(int IdCategorie, string Libelle)
+        public CategoriesEntitity(int IdCategorie, string Libelle)
         {
             this.IdCategorie = IdCategorie;
             this.Libelle = Libelle;

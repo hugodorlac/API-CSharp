@@ -4,20 +4,19 @@ using System.Data.SqlClient;
 
 namespace XefiAcademyAPI.Model
 {
-    public class CategoriesForeCastRepo
+    public class Categories
     {
         private readonly IConfiguration? _configuration;
-        public CategoriesForeCastRepo(IConfiguration? configuration)
+        public Categories(IConfiguration? configuration)
         {
             _configuration = configuration;
-
         }
 
-        public CategoriesForeCastEntitity GetCategorie(int id)
+        public CategoriesEntitity GetCategorie(int id)
         {
 
             var oSqlParam = new SqlParameter("@Id", id);
-            var oCategories = new CategoriesForeCastEntitity();
+            var oCategories = new CategoriesEntitity();
             var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
             var oSqlCommand = new SqlCommand("select * from Categories where IdCategorie = @Id");
             var oSqlAdapter = new SqlDataAdapter(oSqlCommand);
@@ -44,9 +43,9 @@ namespace XefiAcademyAPI.Model
 
         }
 
-        public List<CategoriesForeCastEntitity> GetAllCategories()
+        public List<CategoriesEntitity> GetAllCategories()
         {
-            var oList = new List<CategoriesForeCastEntitity>();
+            var oList = new List<CategoriesEntitity>();
             var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
             var oSqlCommand = new SqlCommand("Select * From Categories Order By IdCategorie");
 
@@ -56,7 +55,7 @@ namespace XefiAcademyAPI.Model
             var oSqlDataReader = oSqlCommand.ExecuteReader();
             while (oSqlDataReader.Read())
             {
-                oList.Add(new CategoriesForeCastEntitity
+                oList.Add(new CategoriesEntitity
                 {
                     IdCategorie = (int)oSqlDataReader["IdCategorie"],
                     Libelle = (string)oSqlDataReader["Libelle"]
@@ -71,7 +70,7 @@ namespace XefiAcademyAPI.Model
 
         }
 
-        public bool UpdateProjet(CategoriesForeCastEntitity fc)
+        public bool UpdateProjet(CategoriesEntitity fc)
         {
             try
             {
@@ -101,7 +100,7 @@ namespace XefiAcademyAPI.Model
             }
         }
 
-        public int CreateCategorie(CategoriesForeCastEntitity fc)
+        public int CreateCategorie(CategoriesEntitity fc)
         {
             try
             {
@@ -155,6 +154,27 @@ namespace XefiAcademyAPI.Model
             {
 
                 return false;
+            }
+        }
+        public int ReadNumberCategories()
+        {
+            try
+            {
+
+                var oSqlConnection = new SqlConnection(_configuration?.GetConnectionString("SQL"));
+                var oSqlCommand = new SqlCommand("select count(*) from Categories");
+                oSqlCommand.Connection = oSqlConnection;
+
+                oSqlConnection.Open();
+                int count = (int)oSqlCommand.ExecuteScalar();
+                oSqlConnection.Close();
+
+                return count;
+            }
+            catch (Exception)
+            {
+
+                return -1;
             }
         }
     }

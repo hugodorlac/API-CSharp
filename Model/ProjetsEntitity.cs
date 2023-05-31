@@ -1,6 +1,6 @@
 ﻿namespace XefiAcademyAPI.Model
 {
-    public class ProjetsForeCastEntitity
+    public class ProjetsEntitity
     {
         public int IdProjet { get; set; }
 
@@ -12,11 +12,11 @@
         public DateTime DateCreation { get; set; }
         public string Auteur { get; set; }
 
-        public ProjetsForeCastEntitity()
+        public ProjetsEntitity()
         {
 
         }
-        public ProjetsForeCastEntitity(int IdProjet, int IdStatut, string Description, DateTime DateCreation, string CreerPar)
+        public ProjetsEntitity(int IdProjet, int IdStatut, string Description, DateTime DateCreation, string CreerPar)
         {
             this.IdProjet = IdProjet;
             this.IdStatut = IdStatut;
