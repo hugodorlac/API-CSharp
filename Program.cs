@@ -62,6 +62,21 @@ app.MapPut("/Login", (IConfiguration _c, AuthEntitity fc) =>
 })
 .WithTags("Auth");
 
+// UPDATE Token
+app.MapPost("/UpdateToken", (AuthEntitity fc) => {
+
+    var ok = new Auth(builder.Configuration).UpdateToken(fc.IdUtilisateur, fc.Token);
+    return ok ? Results.NoContent() : Results.Problem(new ProblemDetails { Detail = "L'update n'a pas marché", Status = 500 });
+
+}).WithTags("Auth");
+
+
+// Check Token
+app.MapPost("/CheckToken", (AuthEntitity fc) => {
+
+    return new Auth(builder.Configuration).CheckToken(fc.IdUtilisateur, fc.Token);
+
+}).WithTags("Auth");
 // -------------------------- CONNAISSANCES -------------------------------------------------------------------------------------------
 
 // CREATE Connaissance
